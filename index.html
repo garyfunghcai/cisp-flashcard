@@ -127,6 +127,15 @@
     margin-bottom: 18px;
     color: var(--text);
   }
+  .q-img {
+    max-width: 100%;
+    max-height: 360px;
+    border-radius: 8px;
+    margin: 8px 0;
+    display: block;
+    border: 1px solid var(--border);
+    background: rgba(255,255,255,0.04);
+  }
   .q-fade {
     position: relative;
   }
@@ -409,7 +418,7 @@ function render() {
     optsHtml += `
       <div class="${cls}" data-key="${k}">
         <div class="opt-key">${k}</div>
-        <div>${escapeHtml(q.opts[k])}</div>
+        <div>${renderMd(q.opts[k])}</div>
       </div>
     `;
   });
@@ -425,9 +434,9 @@ function render() {
   // 摺疊挖空題 (cloze = 題幹≥2 個 （）)
   const isCloze = q.cloze && q.fold_point && q.fold_point < q.q.length - 30;
   const qTextHtml = isCloze && !state.expanded[q.id]
-    ? `<div class="q-fade"><div class="q-text">${escapeHtml(q.q.slice(0, q.fold_point))}</div></div>
+    ? `<div class="q-fade"><div class="q-text">${renderMd(q.q.slice(0, q.fold_point))}</div></div>
        <button class="q-toggle" id="q-toggle">▼ 展開題目 (${q.q.length - q.fold_point} 字)</button>`
-    : `<div class="q-text">${escapeHtml(q.q)}</div>${isCloze ? `<button class="q-toggle" id="q-toggle">▲ 摺疊題目</button>` : ''}`;
+    : `<div class="q-text">${renderMd(q.q)}</div>${isCloze ? `<button class="q-toggle" id="q-toggle">▲ 摺疊題目</button>` : ''}`;
 
   content.innerHTML = `
     <div class="question-card">
@@ -508,6 +517,16 @@ function escapeHtml(s) {
   return String(s).replace(/[&<>"']/g, c => ({
     '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'
   })[c]);
+}
+
+// 將 markdown 圖片語法 ![](./pic/N.png) 轉成 <img>
+// 圖片 hotlink 自 https://raw.githubusercontent.com/npcola/CISP/main/pic/
+const PIC_BASE = 'https://raw.githubusercontent.com/npcola/CISP/main/pic/';
+function renderMd(s) {
+  const esc = escapeHtml(s);
+  return esc.replace(/!\[\]\(\.\/pic\/([^\s)]+)\)/g, (_, fname) =>
+    `<img class="q-img" src="${PIC_BASE}${fname}" alt="${fname}" loading="lazy" onerror="this.style.display='none'">`
+  );
 }
 
 // === Import / Export ===
